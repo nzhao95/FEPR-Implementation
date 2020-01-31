@@ -1374,7 +1374,7 @@ detail/setup.hpp
 detail/func_vector_relational.inl
 ../External/glm/glm/detail/func_vector_relational.inl
 
-/home/zhao/Documents/FEPR/BaseGL/External/glm/glm/detail/glm.cpp
+/home/zhao/Documents/FEPR/NonRigidSimulation/External/glm/glm/detail/glm.cpp
 glm/gtx/dual_quaternion.hpp
 -
 glm/gtc/vec1.hpp

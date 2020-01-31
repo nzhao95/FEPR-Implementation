@@ -6,5 +6,5 @@ C_FLAGS =
 
 C_DEFINES = 
 
-C_INCLUDES = -I/home/zhao/Documents/FEPR/BaseGL/build/External/glad/include 
+C_INCLUDES = -I/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad/include 
 

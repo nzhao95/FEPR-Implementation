@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhao/Documents/FEPR/BaseGL/External/glm
+# Install script for directory: /home/zhao/Documents/FEPR/NonRigidSimulation/External/glm
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,13 +38,13 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/zhao/Documents/FEPR/BaseGL/External/glm/glm")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/zhao/Documents/FEPR/NonRigidSimulation/External/glm/glm")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/cmake/glm" TYPE FILE FILES
-    "/home/zhao/Documents/FEPR/BaseGL/build/External/glm/lib/x86_64-linux-gnu/cmake/glm/glmConfig.cmake"
-    "/home/zhao/Documents/FEPR/BaseGL/build/External/glm/glmConfigVersion.cmake"
+    "/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/lib/x86_64-linux-gnu/cmake/glm/glmConfig.cmake"
+    "/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/glmConfigVersion.cmake"
     )
 endif()
 
@@ -52,7 +52,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/cmake/glm/glmTargets.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/cmake/glm/glmTargets.cmake"
-         "/home/zhao/Documents/FEPR/BaseGL/build/External/glm/CMakeFiles/Export/lib/x86_64-linux-gnu/cmake/glm/glmTargets.cmake")
+         "/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/CMakeFiles/Export/lib/x86_64-linux-gnu/cmake/glm/glmTargets.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/cmake/glm/glmTargets-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -61,17 +61,17 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/cmake/glm" TYPE FILE FILES "/home/zhao/Documents/FEPR/BaseGL/build/External/glm/CMakeFiles/Export/lib/x86_64-linux-gnu/cmake/glm/glmTargets.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/cmake/glm" TYPE FILE FILES "/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/CMakeFiles/Export/lib/x86_64-linux-gnu/cmake/glm/glmTargets.cmake")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/pkgconfig" TYPE FILE FILES "/home/zhao/Documents/FEPR/BaseGL/build/External/glm/glm.pc")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/x86_64-linux-gnu/pkgconfig" TYPE FILE FILES "/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/glm.pc")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/zhao/Documents/FEPR/BaseGL/build/External/glm/glm/cmake_install.cmake")
-  include("/home/zhao/Documents/FEPR/BaseGL/build/External/glm/test/cmake_install.cmake")
+  include("/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/glm/cmake_install.cmake")
+  include("/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/test/cmake_install.cmake")
 
 endif()
 

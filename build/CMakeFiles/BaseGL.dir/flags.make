@@ -6,5 +6,5 @@ CXX_FLAGS =
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/zhao/Documents/FEPR/BaseGL -I/home/zhao/Documents/FEPR/BaseGL/build/External/glad/include -I/home/zhao/Documents/FEPR/BaseGL/External/glfw/include -I/home/zhao/Documents/FEPR/BaseGL/External/glm 
+CXX_INCLUDES = -I/home/zhao/Documents/FEPR/NonRigidSimulation -I/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad/include -I/home/zhao/Documents/FEPR/NonRigidSimulation/External/glfw/include -I/home/zhao/Documents/FEPR/NonRigidSimulation/External/glm 
 

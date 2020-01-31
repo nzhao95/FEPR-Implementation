@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhao/Documents/FEPR/BaseGL
+CMAKE_SOURCE_DIR = /home/zhao/Documents/FEPR/NonRigidSimulation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhao/Documents/FEPR/BaseGL/build
+CMAKE_BINARY_DIR = /home/zhao/Documents/FEPR/NonRigidSimulation/build
 
 # Utility rule file for glad-generate-files.
 
@@ -58,8 +58,8 @@ External/glad/CMakeFiles/glad-generate-files: External/glad/include/glad/glad.h
 
 
 External/glad/src/glad.c:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/zhao/Documents/FEPR/BaseGL/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating GLAD"
-	cd /home/zhao/Documents/FEPR/BaseGL/External/glad && /usr/bin/python -m glad --profile=core --out-path=/home/zhao/Documents/FEPR/BaseGL/build/External/glad --api=gl=4.5,gles2= --generator=c --extensions= --spec=gl
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/zhao/Documents/FEPR/NonRigidSimulation/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating GLAD"
+	cd /home/zhao/Documents/FEPR/NonRigidSimulation/External/glad && /usr/bin/python -m glad --profile=core --out-path=/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad --api=gl=4.5,gles2= --generator=c --extensions= --spec=gl
 
 External/glad/include/glad/glad.h: External/glad/src/glad.c
 	@$(CMAKE_COMMAND) -E touch_nocreate External/glad/include/glad/glad.h
@@ -77,10 +77,10 @@ External/glad/CMakeFiles/glad-generate-files.dir/build: glad-generate-files
 .PHONY : External/glad/CMakeFiles/glad-generate-files.dir/build
 
 External/glad/CMakeFiles/glad-generate-files.dir/clean:
-	cd /home/zhao/Documents/FEPR/BaseGL/build/External/glad && $(CMAKE_COMMAND) -P CMakeFiles/glad-generate-files.dir/cmake_clean.cmake
+	cd /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad && $(CMAKE_COMMAND) -P CMakeFiles/glad-generate-files.dir/cmake_clean.cmake
 .PHONY : External/glad/CMakeFiles/glad-generate-files.dir/clean
 
 External/glad/CMakeFiles/glad-generate-files.dir/depend:
-	cd /home/zhao/Documents/FEPR/BaseGL/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhao/Documents/FEPR/BaseGL /home/zhao/Documents/FEPR/BaseGL/External/glad /home/zhao/Documents/FEPR/BaseGL/build /home/zhao/Documents/FEPR/BaseGL/build/External/glad /home/zhao/Documents/FEPR/BaseGL/build/External/glad/CMakeFiles/glad-generate-files.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhao/Documents/FEPR/NonRigidSimulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhao/Documents/FEPR/NonRigidSimulation /home/zhao/Documents/FEPR/NonRigidSimulation/External/glad /home/zhao/Documents/FEPR/NonRigidSimulation/build /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad/CMakeFiles/glad-generate-files.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : External/glad/CMakeFiles/glad-generate-files.dir/depend
 

@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhao/Documents/FEPR/BaseGL/External/glm/test
+# Install script for directory: /home/zhao/Documents/FEPR/NonRigidSimulation/External/glm/test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

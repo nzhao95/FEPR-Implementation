@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhao/Documents/FEPR/BaseGL/External/glad
+# Install script for directory: /home/zhao/Documents/FEPR/NonRigidSimulation/External/glad
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

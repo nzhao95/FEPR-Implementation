@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhao/Documents/FEPR/BaseGL
+CMAKE_SOURCE_DIR = /home/zhao/Documents/FEPR/NonRigidSimulation
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhao/Documents/FEPR/BaseGL/build
+CMAKE_BINARY_DIR = /home/zhao/Documents/FEPR/NonRigidSimulation/build
 
 # Utility rule file for uninstall.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhao/Documents/FEPR/BaseGL/build
 include External/glfw/CMakeFiles/uninstall.dir/progress.make
 
 External/glfw/CMakeFiles/uninstall:
-	cd /home/zhao/Documents/FEPR/BaseGL/build/External/glfw && /usr/bin/cmake -P /home/zhao/Documents/FEPR/BaseGL/build/External/glfw/cmake_uninstall.cmake
+	cd /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glfw && /usr/bin/cmake -P /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glfw/cmake_uninstall.cmake
 
 uninstall: External/glfw/CMakeFiles/uninstall
 uninstall: External/glfw/CMakeFiles/uninstall.dir/build.make
@@ -67,10 +67,10 @@ External/glfw/CMakeFiles/uninstall.dir/build: uninstall
 .PHONY : External/glfw/CMakeFiles/uninstall.dir/build
 
 External/glfw/CMakeFiles/uninstall.dir/clean:
-	cd /home/zhao/Documents/FEPR/BaseGL/build/External/glfw && $(CMAKE_COMMAND) -P CMakeFiles/uninstall.dir/cmake_clean.cmake
+	cd /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glfw && $(CMAKE_COMMAND) -P CMakeFiles/uninstall.dir/cmake_clean.cmake
 .PHONY : External/glfw/CMakeFiles/uninstall.dir/clean
 
 External/glfw/CMakeFiles/uninstall.dir/depend:
-	cd /home/zhao/Documents/FEPR/BaseGL/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhao/Documents/FEPR/BaseGL /home/zhao/Documents/FEPR/BaseGL/External/glfw /home/zhao/Documents/FEPR/BaseGL/build /home/zhao/Documents/FEPR/BaseGL/build/External/glfw /home/zhao/Documents/FEPR/BaseGL/build/External/glfw/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhao/Documents/FEPR/NonRigidSimulation/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhao/Documents/FEPR/NonRigidSimulation /home/zhao/Documents/FEPR/NonRigidSimulation/External/glfw /home/zhao/Documents/FEPR/NonRigidSimulation/build /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glfw /home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glfw/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : External/glfw/CMakeFiles/uninstall.dir/depend
 

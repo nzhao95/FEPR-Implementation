@@ -6,5 +6,5 @@ CXX_FLAGS = -fPIC   -O2 -Wno-long-long
 
 CXX_DEFINES = -Dglm_shared_EXPORTS
 
-CXX_INCLUDES = -I/home/zhao/Documents/FEPR/BaseGL/External/glm -I/home/zhao/Documents/FEPR/BaseGL/External/glm/glm/.. 
+CXX_INCLUDES = -I/home/zhao/Documents/FEPR/NonRigidSimulation/External/glm -I/home/zhao/Documents/FEPR/NonRigidSimulation/External/glm/glm/.. 
 

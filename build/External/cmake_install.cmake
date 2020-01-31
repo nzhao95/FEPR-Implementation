@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhao/Documents/FEPR/BaseGL/External
+# Install script for directory: /home/zhao/Documents/FEPR/NonRigidSimulation/External
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,9 +39,9 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/zhao/Documents/FEPR/BaseGL/build/External/glad/cmake_install.cmake")
-  include("/home/zhao/Documents/FEPR/BaseGL/build/External/glfw/cmake_install.cmake")
-  include("/home/zhao/Documents/FEPR/BaseGL/build/External/glm/cmake_install.cmake")
+  include("/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glad/cmake_install.cmake")
+  include("/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glfw/cmake_install.cmake")
+  include("/home/zhao/Documents/FEPR/NonRigidSimulation/build/External/glm/cmake_install.cmake")
 
 endif()
 
