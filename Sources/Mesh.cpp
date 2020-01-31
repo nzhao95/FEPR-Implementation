@@ -161,8 +161,7 @@ void Mesh::clear () {
 void Mesh::periodicMove(float t, float ground ) {
 	if (t < 0.1) {
 		for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
-			if (nIt>m_vertexPositions.size()/2) m_vertexAccelerations[nIt] = glm::vec3(0.0, 0.0, m_vertexPositions[nIt][1] - ground);
-
+			m_vertexAccelerations[nIt] = glm::vec3(0.0, 0.0, m_vertexPositions[nIt][1] - ground);
 		}
 	}
 	else {
@@ -176,38 +175,16 @@ void Mesh::computeAcceleration(){
 }
 
 void Mesh::addInternalForces(){
-	std::fill(m_vertexStretch.begin(), m_vertexStretch.end(), glm::vec3(0));
-	for (unsigned int tIt; tIt < m_triangleIndices.size(); ++tIt) {
-		glm::uvec3 t = m_triangleIndices[ tIt ];
-		if(m_vertexStretch[t[0]][0] == 0) {
-			glm::vec3 x1 = m_vertexPositions[t[1]] - m_vertexPositions[t[0]];
-			glm::vec3 x2 = m_vertexPositions[t[2]] - m_vertexPositions[t[0]];
-
-			glm::vec3 u1 = m_vertexRestPositions[t[1]] - m_vertexRestPositions[t[0]];
-			glm::vec3 u2 = m_vertexRestPositions[t[2]] - m_vertexRestPositions[t[0]];
-			m_vertexStretch[t[0]] = (x1+x2)/(u1+u2)-glm::vec3(1.f);
-			m_vertexAccelerations[t[0]] -= m_vertexStretch[t[0]] * (m_vertexPositions[t[1]] + m_vertexPositions[t[2]])/(u1+u2) * m_strech;
+#pragma omp parallel for
+	for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
+		float count = 0;
+		for (auto const& neighbour : m_vertexRestPositions[nIt]) {
+			glm::vec3 delta_x = m_vertexPositions[neighbour.first] - m_vertexPositions[nIt];
+			m_vertexAccelerations[nIt] += (glm::length(delta_x) - neighbour.second) * m_strech * (delta_x);
+			count ++;
 		}
-		if(m_vertexStretch[t[1]][0] == 0) {
-			glm::vec3 x1 = m_vertexPositions[t[0]] - m_vertexPositions[t[1]];
-			glm::vec3 x2 = m_vertexPositions[t[2]] - m_vertexPositions[t[1]];
-
-			glm::vec3 u1 = m_vertexRestPositions[t[0]] - m_vertexRestPositions[t[1]];
-			glm::vec3 u2 = m_vertexRestPositions[t[2]] - m_vertexRestPositions[t[1]];
-			m_vertexStretch[t[1]] = (x1+x2)/(u1+u2)-glm::vec3(1.f);
-			m_vertexAccelerations[t[1]] -= m_vertexStretch[t[1]] * (m_vertexPositions[t[0]] + m_vertexPositions[t[2]])/(u1+u2) * m_strech;
-		}
-		if(m_vertexStretch[t[2]][0] == 0) {
-			glm::vec3 x1 = m_vertexPositions[t[0]] - m_vertexPositions[t[2]];
-			glm::vec3 x2 = m_vertexPositions[t[1]] - m_vertexPositions[t[2]];
-
-			glm::vec3 u1 = m_vertexRestPositions[t[0]] - m_vertexRestPositions[t[2]];
-			glm::vec3 u2 = m_vertexRestPositions[t[1]] - m_vertexRestPositions[t[2]];
-			m_vertexStretch[t[2]] = (x1+x2)/(u1+u2)-glm::vec3(1.f);
-			m_vertexAccelerations[t[2]] -= m_vertexStretch[t[2]] * (m_vertexPositions[t[1]] + m_vertexPositions[t[0]])/(u1+u2) * m_strech;
-		}
+		if (count > 0) m_vertexAccelerations[nIt] /= count;
 	}
-
 }
 
 void Mesh::updateAcceleration(float dt) {
