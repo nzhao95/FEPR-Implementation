@@ -116,11 +116,15 @@ void Mesh::init () {
 
 
 	m_vertexVelocities.resize(m_vertexPositions.size(), glm::vec3(0.0));
-	m_vertexAccelerations.resize(m_vertexPositions.size(), glm::vec3(0.0));
-	m_vertexStretch.resize(m_vertexPositions.size(), glm::vec3(1.0));
+	m_vertexStretch.resize(m_triangleIndices.size(), glm::vec3(0.0));
+	m_vertexRestLength.resize(m_triangleIndices.size(), 0.f);
 	m_vertexRestPositions = m_vertexPositions;
-
-
+	for( unsigned int tIt = 0 ; tIt < m_triangleIndices.size() ; ++tIt ) {
+		glm::uvec3 t = m_triangleIndices[ tIt ];
+		const float delta_x1 = glm::length(m_vertexPositions[t[1]] - m_vertexPositions[t[0]]);
+		const float delta_x2 = glm::length(m_vertexPositions[t[2]] - m_vertexPositions[t[0]]);
+		m_vertexRestLength[tIt] = delta_x1+delta_x2;
+	}
 }
 
 void Mesh::render () {
@@ -158,49 +162,95 @@ void Mesh::clear () {
 	}
 }
 
-void Mesh::periodicMove(float t, float ground ) {
-	if (t < 0.1) {
-		for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
-			m_vertexAccelerations[nIt] = glm::vec3(0.0, 0.0, m_vertexPositions[nIt][1] - ground);
-		}
-	}
-	else {
-		computeAcceleration();
-	}
+glm::vec3 Mesh::externalForces(glm::vec3 x, float t) {
+	float r = 0.2;
+	glm::vec3 gravity = glm::vec3(0, -9.8, 0);
+	glm::vec3 floor = glm::vec3(0, 9.8, 0);
+	glm::vec3 force = glm::vec3(0.1f, 0, 0.6f + cos(t) * x[0] * 0.1f) * abs(x[1] - m_ground);
+	if (t<0.2)
+		return force;
+	else return glm::vec3(0);
 }
 
-void Mesh::computeAcceleration(){
-	std::fill(m_vertexAccelerations.begin(), m_vertexAccelerations.end(), glm::vec3(0));
-	addInternalForces();
+glm::vec3 Mesh::elasticForce(glm::vec3 x, glm::vec3 x0) { // consider the rhino as an elastic object
+	return - m_k * m_f * (x - x0);
 }
 
-void Mesh::addInternalForces(){
-#pragma omp parallel for
+
+
+// void Mesh::internalForces(){
+// 	std::fill(m_vertexStretch.begin(), m_vertexStretch.end(), glm::vec3(0));
+// 	for( unsigned int tIt = 0 ; tIt < m_triangleIndices.size() ; ++tIt ) {
+// 		glm::uvec3 t = m_triangleIndices[ tIt ];
+// 		const glm::vec3 x0 = m_vertexPositions[t[0]];
+// 		const glm::vec3 x1 = m_vertexPositions[t[1]];
+// 		const glm::vec3 x2 = m_vertexPositions[t[2]];
+// 		const float delta_x1 = glm::length(x1 - x0);
+// 		const float delta_x2 = glm::length(x2 - x0);
+// 		// const float delta_x1 = 0.f;
+// 		// const float delta_x2 = 0.f;
+// 		float stretch = (delta_x1 + delta_x2)/(m_vertexRestLength[tIt]);
+//
+// 		m_vertexStretch[t[0]] = ((x1 + x2) * 0.5f - x0) * (stretch - 1);
+// 		m_vertexStretch[t[1]] = ((x0 + x2) * 0.5f - x1) * (stretch - 1);
+// 		m_vertexStretch[t[2]] = ((x1 + x0) * 0.5f - x2) * (stretch - 1);
+// 	}
+// }
+//
+
+Eigen::VectorXf Mesh::FEPR () {
+	Eigen::VectorXf q (m_vertexPositions.size() * 6 + 2) ;
+	Eigen::MatrixXf D (m_vertexPositions.size() * 6 + 2, m_vertexPositions.size() * 6 + 2);
+
+}
+
+Eigen::VectorXf Mesh::updateEnergy (){
+	Eigen::VectorXf c (7);
+	float energy = 0.f;
+	glm::vec3 linear_momentum (0);
+	glm::vec3 angular_momentum (0);
+
+	for (unsigned int nIt ; nIt < m_vertexPositions.size(); ++nIt) {
+		glm::vec3 x = m_vertexPositions[nIt];
+		glm::vec3 x0 = m_vertexRestPositions[nIt];
+		glm::vec3 v = m_vertexVelocities[nIt];
+		energy += v[0]*v[0] + v[1]*v[1] + v[2]*v[2] + glm::length2(x - x0) * m_k; //Sum of cinetic and elastic energy
+		linear_momentum += v;
+		angular_momentum += glm::cross(x,v);
+	}
+
+	c << energy, linear_momentum[0], linear_momentum[1], linear_momentum[2]
+	angular_momentum[0], angular_momentum[1], angular_momentum[2];
+
+	return c;
+}
+
+Eigen::MatrixXf Mesh::jacobian_c (Eigen::VectorXf q) {
+	Eigen::MatrixXf dc (m_vertexPositions.size() * 6 + 2, 7);
+
+}
+
+
+void Mesh::updateVelocity(float t) {
 	for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
-		float count = 0;
-		for (auto const& neighbour : m_vertexRestPositions[nIt]) {
-			glm::vec3 delta_x = m_vertexPositions[neighbour.first] - m_vertexPositions[nIt];
-			m_vertexAccelerations[nIt] += (glm::length(delta_x) - neighbour.second) * m_strech * (delta_x);
-			count ++;
-		}
-		if (count > 0) m_vertexAccelerations[nIt] /= count;
+		glm::vec3 x = m_vertexPositions[nIt];
+		// m_vertexVelocities[nIt] = m_vertexVelocities[nIt] + m_vertexAccelerations[nIt] * m_h;
+		m_vertexVelocities[nIt] += m_h * (externalForces(x,t) + elasticForce(x, m_vertexRestPositions[nIt])
+		 + m_h * (- glm::vec3(m_k))
+		 * m_vertexVelocities[nIt])/(glm::vec3(1) - (float) pow(m_h, 2) * glm::vec3(m_k));
+		glm::vec3 angular_momentum = glm::cross(x - glm::vec3(0, m_ground, 0), m_vertexVelocities[nIt]); // ||v||sin(theta).T
+		glm::vec3 angular_vector = glm::normalize(glm::cross(x - glm::vec3(0, m_ground, 0), angular_momentum));
+		m_vertexVelocities[nIt] = glm::dot(m_vertexVelocities[nIt], angular_vector) * angular_vector;
+
 	}
 }
 
-void Mesh::updateAcceleration(float dt) {
-	for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
-		m_vertexAccelerations[nIt] = m_mass * m_forceField[nIt];
-	}
-}
+void Mesh::updatePositions() {
 
-void Mesh::updateVelocity(float dt) {
-	for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
-		m_vertexVelocities[nIt] = m_vertexVelocities[nIt] + m_vertexAccelerations[nIt] * dt;
-	}
-}
 
-void Mesh::updatePositions(float dt) {
 	for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
-		m_vertexPositions[nIt] = m_vertexPositions[nIt] + m_vertexVelocities[nIt] * dt;
+		m_vertexPositions[nIt] = m_vertexPositions[nIt] + m_vertexVelocities[nIt] * m_h;
+		// if (m_vertexPositions[nIt][1] < m_ground) m_vertexPositions[nIt][1] = 0;
 	}
+	recomputePerVertexNormals();
 }

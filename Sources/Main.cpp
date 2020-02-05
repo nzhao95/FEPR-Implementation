@@ -43,7 +43,7 @@
 
 static const std::string SHADER_PATH ("Resources/Shaders/");
 // static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/sphere.off"); //use for subdivision
-static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/dragon.off");
+static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/rhino.off");
 
 // Window parameters
 static GLFWwindow * windowPtr = nullptr;
@@ -66,21 +66,14 @@ static glm::vec3 baseRot (0.0);
 
 void clear ();
 
-
-
 // timer:
 float app_timer = 0.0;
 float app_timer_last_colckTime;
 bool app_timer_is_stopped = true;
 int model = 0;
 
-
-
 // textures:
 unsigned int texture_slot_available = 0;
-
-
-
 
 namespace Texture {
 static
@@ -400,7 +393,8 @@ void keyCallback (GLFWwindow * windowPtr, int key, int scancode, int action, int
     else if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose (windowPtr, true); // Closes the application if the escape key is pressed
     }
-    else if (action == GLFW_PRESS && key == GLFW_KEY_TAB) {
+    else if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
+      app_timer = 0;
     }
 }
 
@@ -652,10 +646,8 @@ void update (float currentTime) {
         app_timer_last_colckTime = currentTime;
         app_timer += dt;
         // <---- Update here what needs to be animated over time ---->
-        scene.meshPtr->periodicMove(app_timer, -0.5);
-        scene.meshPtr->updateVelocity(dt);
-        scene.meshPtr->updatePositions(dt);
-        // scene.meshPtr->init();
+        scene.meshPtr->updateVelocity(app_timer);
+        scene.meshPtr->updatePositions();
         Light & light0 = scene.scene_lights[ 0 ];
         light0.m_position = glm::vec3 (-2*cos(app_timer), 2*sin(app_timer), 3.5);
     }

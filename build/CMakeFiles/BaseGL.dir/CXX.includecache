@@ -3293,6 +3293,10 @@ glm/ext.hpp
 -
 Transform.h
 /home/zhao/Documents/FEPR/NonRigidSimulation/Sources/Transform.h
+Eigen/Dense
+-
+Eigen/Sparse
+-
 
 /home/zhao/Documents/FEPR/NonRigidSimulation/Sources/MeshLoader.cpp
 MeshLoader.h

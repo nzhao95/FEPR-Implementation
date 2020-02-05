@@ -11,6 +11,9 @@
 
 #include "Transform.h"
 
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
 class Mesh : public Transform {
 public:
 	virtual ~Mesh ();
@@ -32,12 +35,14 @@ public:
 
         void recomputePerVertexNormals (bool angleBased = false);
         void recomputePerVertexTextureCoordinates ( );
-				void periodicMove(float t, float ground);
-				void updateAcceleration(float dt);
 				void updateVelocity(float dt);
-				void updatePositions(float dt);
-				void computeAcceleration();
-				void addInternalForces();
+				void updatePositions();
+				void internalForces();
+				glm::vec3 externalForces(glm::vec3 x, float t);
+				glm::vec3 elasticForce(glm::vec3 x, glm::vec3 x0);
+				glm::vec3 dxExternalForces(glm::vec3 x);
+				Eigen::VectorXf constraint ();
+				Eigen::VectorXf FEPR ();
 
 	void init ();
 	void render ();
@@ -51,10 +56,15 @@ private:
 	std::vector<glm::vec2> m_vertexTexCoords;
 	std::vector<glm::uvec3> m_triangleIndices;
 	std::vector<glm::vec3> m_vertexVelocities;
-	std::vector<glm::vec3> m_vertexAccelerations;
 	std::vector<glm::vec3> m_vertexStretch;
+	std::vector<glm::vec3> m_vertexdxStretch;
 	std::vector<glm::vec3> m_vertexRestPositions;
+	std::vector<float> m_vertexRestLength;
 	std::vector<glm::vec3> m_forceField;
+
+	glm::vec3 m_barycenter = glm::vec3(0);
+	const glm::vec3 m_barycenter0 = glm::vec3(0);
+	glm::vec3 m_O = glm::vec3(0, -0.45, 0);
 
 	GLuint m_vao = 0;
 	GLuint m_posVbo = 0;
@@ -63,7 +73,14 @@ private:
 	GLuint m_ibo = 0;
 
 	float m_mass = 1.f;
-	float m_strech = 100.f;
+	float m_strech = 1.f;
+	float m_ground = -0.45;
+	float m_f = 1.f;
+	float m_h = 0.05;
+	float m_k = 1.f;
+	float s = 1.f;
+	float t = 1.f;
+	float epsilon = 0.001;
 };
 
 #endif // MESH_H
