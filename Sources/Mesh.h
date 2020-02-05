@@ -42,7 +42,11 @@ public:
 				glm::vec3 elasticForce(glm::vec3 x, glm::vec3 x0);
 				glm::vec3 dxExternalForces(glm::vec3 x);
 				Eigen::VectorXf constraint ();
-				Eigen::VectorXf FEPR ();
+				void FEPR (float t);
+				Eigen::VectorXf computeConstraint (Eigen::VectorXf q, Eigen::VectorXf qn_1);
+				glm::vec3 computePosition(unsigned int nIt) ;
+				glm::vec3 computeVelocity(unsigned int nIt, float t) ;
+				Eigen::MatrixXf jacobian_c (Eigen::VectorXf q, Eigen::VectorXf qn_1);
 
 	void init ();
 	void render ();

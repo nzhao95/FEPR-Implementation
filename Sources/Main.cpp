@@ -646,8 +646,11 @@ void update (float currentTime) {
         app_timer_last_colckTime = currentTime;
         app_timer += dt;
         // <---- Update here what needs to be animated over time ---->
-        scene.meshPtr->updateVelocity(app_timer);
-        scene.meshPtr->updatePositions();
+        if (app_timer < 0.2) {
+          scene.meshPtr->updateVelocity(app_timer);
+          scene.meshPtr->updatePositions();
+        }
+        else scene.meshPtr->FEPR(app_timer);
         Light & light0 = scene.scene_lights[ 0 ];
         light0.m_position = glm::vec3 (-2*cos(app_timer), 2*sin(app_timer), 3.5);
     }
