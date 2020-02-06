@@ -47,6 +47,7 @@ public:
 				glm::vec3 computePosition(unsigned int nIt) ;
 				glm::vec3 computeVelocity(unsigned int nIt, float t) ;
 				Eigen::MatrixXf jacobian_c (Eigen::VectorXf q, Eigen::VectorXf qn_1);
+				void updateJacobian (Eigen::MatrixXf &j, Eigen::VectorXf q);
 
 	void init ();
 	void render ();
@@ -66,9 +67,9 @@ private:
 	std::vector<float> m_vertexRestLength;
 	std::vector<glm::vec3> m_forceField;
 
-	glm::vec3 m_barycenter = glm::vec3(0);
-	const glm::vec3 m_barycenter0 = glm::vec3(0);
-	glm::vec3 m_O = glm::vec3(0, -0.45, 0);
+	glm::vec3 m_O = glm::vec3(0, -0.02, 0);
+
+	Eigen::DiagonalMatrix<float, Eigen::Dynamic> m_D;
 
 	GLuint m_vao = 0;
 	GLuint m_posVbo = 0;
@@ -78,7 +79,7 @@ private:
 
 	float m_mass = 1.f;
 	float m_strech = 1.f;
-	float m_ground = -0.45;
+	float m_ground = 0;
 	float m_f = 1.f;
 	float m_h = 0.05;
 	float m_k = 1.f;

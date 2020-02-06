@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -115,7 +116,7 @@ void Mesh::init () {
 	glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, m_ibo);
 	glBindVertexArray (0); // Desactive the VAO just created. Will be activated at rendering time.
 
-
+	unsigned int n = m_vertexPositions.size();
 	m_vertexVelocities.resize(m_vertexPositions.size(), glm::vec3(0.0));
 	m_vertexStretch.resize(m_triangleIndices.size(), glm::vec3(0.0));
 	m_vertexRestLength.resize(m_triangleIndices.size(), 0.f);
@@ -126,6 +127,18 @@ void Mesh::init () {
 		const float delta_x2 = glm::length(m_vertexPositions[t[2]] - m_vertexPositions[t[0]]);
 		m_vertexRestLength[tIt] = delta_x1+delta_x2;
 	}
+
+	Eigen::VectorXf D_diagonal (n * 6 + 2);
+	for (unsigned int nIt = 0; nIt < m_vertexPositions.size(); ++nIt) {
+		D_diagonal(nIt*3) = 1; D_diagonal(nIt*3+1) = 1; D_diagonal(nIt*3+2) = 1;
+		D_diagonal((nIt+n)*3) = pow(m_h,2); D_diagonal((nIt+n)*3+1) = pow(m_h,2); D_diagonal((nIt+n)*3+2) = pow(m_h,2);
+	}
+
+	D_diagonal(6*n) = 0.001; D_diagonal(6*n+1) = 0.001;
+
+	Eigen::DiagonalMatrix<float, Eigen::Dynamic> D;
+	m_D.diagonal() = D_diagonal;
+	m_D = m_D.inverse();
 }
 
 void Mesh::render () {
@@ -179,52 +192,58 @@ glm::vec3 Mesh::elasticForce(glm::vec3 x, glm::vec3 x0) { // consider the rhino 
 
 
 void Mesh::FEPR (float t) {
+	using namespace std;
+	if (t<0.2) {
+		updateVelocity(t);
+		updatePositions();
+		return ;
+	}
 	const unsigned int n = m_vertexPositions.size();
 
 	Eigen::VectorXf q (n * 6 + 2) ;
 	Eigen::VectorXf qn_1 (n * 6 + 2) ;
-	Eigen::VectorXf D_diagonal (n * 6 + 2);
 
+	// internalForces();
 
+	for (unsigned int nIt = 0; nIt < n; ++nIt) {
+		glm::vec3 v = computeVelocity(nIt, t);  //Compute new velocity with linearized integrator
+		glm::vec3 x = m_vertexPositions[nIt] + v * m_h; //Compute new position
 
-	for (unsigned int nIt ; nIt < n; ++nIt) {
-		glm::vec3 v = computeVelocity(nIt, t);
-		glm::vec3 x = m_vertexPositions[nIt] + v * m_h;
 		q(nIt*3) = x[0];
 		q(nIt*3+1) = x[1];
 		q(nIt*3+2) = x[2];
 		q((nIt+n)*3) = v[0];
 		q((nIt+n)*3+1) = v[1];
 		q((nIt+n)*3+2) = v[2];
-		D_diagonal(nIt*3) = 1; D_diagonal(nIt*3+1) = 1; D_diagonal(nIt*3+2) = 1;
-		D_diagonal((nIt+n)*3) = pow(m_h,2); D_diagonal((nIt+n)*3+1) = pow(m_h,2); D_diagonal((nIt+n)*3+2) = pow(m_h,2);
 	}
 
-	D_diagonal(6*n) = 0.001; D_diagonal(6*n+1) = 0.001;
+	q(6*n) = 1; q(6*n+1) = 1;
 
-	Eigen::DiagonalMatrix<float, Eigen::Dynamic> D;
-	D.diagonal() = D_diagonal;
 	qn_1 = q;
+	Eigen::MatrixXf jacobC = jacobian_c(q, qn_1);
 	Eigen::VectorXf c = computeConstraint(q,  qn_1);
 
+	std::cout << c.transpose() << std::endl;
+
 	unsigned int iterations = 0;
+	while (iterations < 10 && c.cwiseAbs().sum() > 10e-7) {
 
-	while (iterations < 10 && c.sum() > 10e-7) {
-		Eigen::MatrixXf jacobC = jacobian_c(q, qn_1);
+		updateJacobian(jacobC, q);
 		c = computeConstraint(q,  qn_1);
-		Eigen::MatrixXf A = jacobC.transpose() * D * jacobC;
+		Eigen::MatrixXf A = jacobC.transpose() * m_D * jacobC;
 
-		Eigen::VectorXf lambda = A.colPivHouseholderQr().solve(-c);
+		Eigen::VectorXf lambda = A.colPivHouseholderQr().solve(c);
 
-		q = q - D.inverse() * jacobC * lambda ;
+		q = q - m_D * jacobC * lambda ;
 
 		iterations++;
 	}
 
-	for (unsigned int nIt ; nIt < n; ++nIt) {
+	for (unsigned int nIt = 0; nIt < n; ++nIt) {
 		m_vertexPositions[nIt] = glm::vec3(q(nIt*3),q(nIt*3+1),q(nIt*3+2));
 		m_vertexVelocities[nIt] = glm::vec3(q((nIt+n)*3),q((nIt+n)*3+1),q((nIt+n)*3+2));
 	}
+	recomputePerVertexNormals();
 
 }
 
@@ -234,10 +253,11 @@ Eigen::VectorXf Mesh::computeConstraint (Eigen::VectorXf q, Eigen::VectorXf qn_1
 	glm::vec3 linear_momentum (0);
 	glm::vec3 angular_momentum (0);
 
-	for (unsigned int nIt ; nIt < m_vertexPositions.size(); ++nIt) {
+	for (unsigned int nIt = 0; nIt < m_vertexPositions.size(); ++nIt) {
 		unsigned int qIt = (nIt + m_vertexPositions.size()) * 3;
-		const glm::vec3 x = glm::vec3(q(nIt*3), q(nIt*3+1), q(nIt*3+2));
 		const glm::vec3 x0 = m_vertexRestPositions[nIt];
+
+		const glm::vec3 x = glm::vec3(q(nIt*3), q(nIt*3+1), q(nIt*3+2));
 		const glm::vec3 v = glm::vec3(q(qIt), q(qIt+1), q(qIt+2));
 
 		const glm::vec3 xn = m_vertexPositions[nIt];
@@ -248,13 +268,17 @@ Eigen::VectorXf Mesh::computeConstraint (Eigen::VectorXf q, Eigen::VectorXf qn_1
 
 		energy += (v[0]*v[0] + v[1]*v[1] + v[2]*v[2] + pow(glm::length(x - x0), 2) * m_k)
 		-(vn[0]*vn[0] + vn[1]*vn[1] + vn[2]*vn[2] + pow(glm::length(xn - x0), 2) * m_k); //Sum of cinetic and elastic energy
+		// energy += (v[0]*v[0] + v[1]*v[1] + v[2]*v[2])
+		// -(vn[0]*vn[0] + vn[1]*vn[1] + vn[2]*vn[2] ); //Sum of cinetic and elastic energy
+
 		linear_momentum += v - vn_1 + q(m_vertexPositions.size()*6) * (vn_1 - vn);
 		angular_momentum += glm::cross(x,v) - glm::cross(xn_1, vn_1)
 		+ q(m_vertexPositions.size()*6+1) * (glm::cross(xn_1, vn_1) - glm::cross(xn,vn));
 	}
 
-	c << energy, linear_momentum[0], linear_momentum[1], linear_momentum[2],
-	angular_momentum[0], angular_momentum[1], angular_momentum[2];
+	c << energy, linear_momentum[0], linear_momentum[1], linear_momentum[2]
+	, angular_momentum[0], angular_momentum[1], angular_momentum[2];
+
 
 	return c;
 }
@@ -266,9 +290,10 @@ Eigen::MatrixXf Mesh::jacobian_c (Eigen::VectorXf q, Eigen::VectorXf qn_1) {
 	glm::vec3 pn_1(0);
 	glm::vec3 ln(0);
 	glm::vec3 ln_1(0);
-	for (unsigned int nIt ; nIt < n; ++nIt) {
-		const glm::vec3 x = glm::vec3(q(nIt*3), q(nIt*3+1), q(nIt*3+2));
+	for (unsigned int nIt = 0; nIt < n; ++nIt) {
 		const glm::vec3 x0 = m_vertexRestPositions[nIt];
+
+		const glm::vec3 x = glm::vec3(q(nIt*3), q(nIt*3+1), q(nIt*3+2));
 		const glm::vec3 v = glm::vec3(q((nIt+n)*3), q((nIt+n)*3+1), q((nIt+n)*3+2));
 
 		const glm::vec3 xn = m_vertexPositions[nIt];
@@ -284,20 +309,20 @@ Eigen::MatrixXf Mesh::jacobian_c (Eigen::VectorXf q, Eigen::VectorXf qn_1) {
 
 		//Computing partial derivates according to xi, vi, s,t with 1 column for each condition
 
-		dc(nIt*3, 0) = 2*(q(nIt*3)-x0[0]); dc(nIt*3+1, 0) = 2*(q(nIt*3+1)-x0[1]); dc(nIt*3+1, 0) = 2*(q(nIt*3+2)-x0[2]);
-		dc((nIt+n)*3, 0) = 2*q((nIt+n)*3); dc((nIt+n)*3 + 1, 0) = 2*q((nIt+n)*3+1); dc((nIt+n)*3 + 2, 0) = 2*q((nIt+n)*3+2);
+		dc(nIt*3, 0) = 2*(x[0]-x0[0]); dc(nIt*3+1, 0) = 2*(x[1]-x0[1]); dc(nIt*3+1, 0) = 2*(x[2]-x0[2]);
+		dc((nIt+n)*3, 0) = 2*v[0]; dc((nIt+n)*3 + 1, 0) = 2*v[1]; dc((nIt+n)*3 + 2, 0) = 2*v[2];
 
-		dc(nIt*3, 1) = 0; dc(nIt*3+1, 1) = 0; dc(nIt*3+1, 1) = 0;
-		dc(nIt*3, 2) = 0; dc(nIt*3+1, 2) = 0; dc(nIt*3+1, 2) = 0;
-		dc(nIt*3, 3) = 0; dc(nIt*3+1, 3) = 0; dc(nIt*3+1, 3) = 0;
+		// dc(nIt*3, 1) = 0; dc(nIt*3+1, 1) = 0; dc(nIt*3+1, 1) = 0;
+		// dc(nIt*3, 2) = 0; dc(nIt*3+1, 2) = 0; dc(nIt*3+1, 2) = 0;
+		// dc(nIt*3, 3) = 0; dc(nIt*3+1, 3) = 0; dc(nIt*3+1, 3) = 0;
 
 		dc((nIt+n)*3, 1) = 1; dc((nIt+n)*3 + 1, 1) = 0; dc((nIt+n)*3 + 2, 1) = 0;
 		dc((nIt+n)*3, 2) = 0; dc((nIt+n)*3 + 1, 2) = 1; dc((nIt+n)*3 + 2, 2) = 0;
 		dc((nIt+n)*3, 3) = 0; dc((nIt+n)*3 + 1, 3) = 0; dc((nIt+n)*3 + 2, 3) = 1;
 
-		dc(nIt*3, 4) = 0; dc(nIt*3+1, 4) = v[2]; dc(nIt*3+1, 4) = -v[1];
-		dc(nIt*3, 5) = -v[2]; dc(nIt*3+1, 5) = 0; dc(nIt*3+1, 5) = v[0];
-		dc(nIt*3, 6) = v[1]; dc(nIt*3+1, 6) = -v[0]; dc(nIt*3+1, 6) = 0;
+		dc(nIt*3, 4) = 0; dc(nIt*3+1, 4) = v[2]; dc(nIt*3+2, 4) = -v[1];
+		dc(nIt*3, 5) = -v[2]; dc(nIt*3+1, 5) = 0; dc(nIt*3+2, 5) = v[0];
+		dc(nIt*3, 6) = v[1]; dc(nIt*3+1, 6) = -v[0]; dc(nIt*3+2, 6) = 0;
 
 		dc((nIt+n)*3, 4) = 0; dc((nIt+n)*3 + 1, 4) = -x[2]; dc((nIt+n)*3 + 2, 4) = x[1];
 		dc((nIt+n)*3, 5) = x[2]; dc((nIt+n)*3 + 1, 5) = 0; dc((nIt+n)*3 + 2, 5) = -x[0];
@@ -316,32 +341,59 @@ Eigen::MatrixXf Mesh::jacobian_c (Eigen::VectorXf q, Eigen::VectorXf qn_1) {
 	dc(6*n, 4) = 0; dc(6*n+1, 4) = dt[0];
 	dc(6*n, 5) = 0; dc(6*n+1, 5) = dt[1];
 	dc(6*n, 6) = 0; dc(6*n+1, 6) = dt[2];
+	return dc;
 }
 
+
+void Mesh::updateJacobian (Eigen::MatrixXf &J, Eigen::VectorXf q) {
+	unsigned int n = m_vertexPositions.size();
+	for (unsigned int nIt = 0; nIt < n; ++nIt) {
+		const glm::vec3 x0 = m_vertexRestPositions[nIt];
+
+		const glm::vec3 x = glm::vec3(q(nIt*3), q(nIt*3+1), q(nIt*3+2));
+		const glm::vec3 v = glm::vec3(q((nIt+n)*3), q((nIt+n)*3+1), q((nIt+n)*3+2));
+
+		const glm::vec3 xn = m_vertexPositions[nIt];
+		const glm::vec3 vn = m_vertexVelocities[nIt];
+
+		//Computing partial derivates according to xi, vi, s,t with 1 column for each condition
+
+		J(nIt*3, 0) = 2*(x[0]-x0[0]); J(nIt*3+1, 0) = 2*(x[1]-x0[1]); J(nIt*3+1, 0) = 2*(x[2]-x0[2]);
+		J((nIt+n)*3, 0) = 2*v[0]; J((nIt+n)*3 + 1, 0) = 2*v[1]; J((nIt+n)*3 + 2, 0) = 2*v[2];
+
+		J(nIt*3+1, 4) = v[2]; J(nIt*3+2, 4) = -v[1];
+		J(nIt*3, 5) = -v[2]; J(nIt*3+2, 5) = v[0];
+		J(nIt*3, 6) = v[1]; J(nIt*3+1, 6) = -v[0];
+
+		J((nIt+n)*3 + 1, 4) = -x[2]; J((nIt+n)*3 + 2, 4) = x[1];
+		J((nIt+n)*3, 5) = x[2]; J((nIt+n)*3 + 2, 5) = -x[0];
+		J((nIt+n)*3, 6) = -x[1]; J((nIt+n)*3 + 1, 6) = x[0];
+	}
+}
 
 void Mesh::updateVelocity(float t) {
 	for( unsigned int nIt = 0 ; nIt < m_vertexPositions.size() ; ++nIt ) {
 		glm::vec3 x = m_vertexPositions[nIt];
-		// m_vertexVelocities[nIt] = m_vertexVelocities[nIt] + m_vertexAccelerations[nIt] * m_h;
+
 		m_vertexVelocities[nIt] += m_h * (externalForces(x,t) + elasticForce(x, m_vertexRestPositions[nIt])
-		 + m_h * (- glm::vec3(m_k))
+		  + m_h * (- glm::vec3(m_k))
 		 * m_vertexVelocities[nIt])/(glm::vec3(1) - (float) pow(m_h, 2) * glm::vec3(m_k));
-		glm::vec3 angular_momentum = glm::cross(x - m_O, m_vertexVelocities[nIt]); // ||v||sin(theta).T
-		glm::vec3 angular_vector = glm::normalize(glm::cross(x - m_O, angular_momentum));
-		m_vertexVelocities[nIt] = glm::dot(m_vertexVelocities[nIt], angular_vector) * angular_vector;
+		// glm::vec3 angular_momentum = glm::cross(x - m_O, m_vertexVelocities[nIt]); // ||v||sin(theta).T
+		// glm::vec3 angular_vector = glm::normalize(glm::cross(x - m_O, angular_momentum));
+		// m_vertexVelocities[nIt] = glm::dot(m_vertexVelocities[nIt], angular_vector) * angular_vector;
 
 	}
 }
 
 glm::vec3 Mesh::computeVelocity(unsigned int nIt, float t) {
 	glm::vec3 x = m_vertexPositions[nIt];
-	// m_vertexVelocities[nIt] = m_vertexVelocities[nIt] + m_vertexAccelerations[nIt] * m_h;
+
 	glm::vec3 v = m_vertexVelocities[nIt] + m_h * (externalForces(x,t) + elasticForce(x, m_vertexRestPositions[nIt])
-	 + m_h * (- glm::vec3(m_k))
+	  + m_h * (- glm::vec3(m_k))
 	 * m_vertexVelocities[nIt])/(glm::vec3(1) - (float) pow(m_h, 2) * glm::vec3(m_k));
-	glm::vec3 angular_momentum = glm::cross(x - m_O, m_vertexVelocities[nIt]); // ||v||sin(theta).T
-	glm::vec3 angular_vector = glm::normalize(glm::cross(x - m_O, angular_momentum));
-	v = glm::dot(v, angular_vector) * angular_vector;
+	// glm::vec3 angular_momentum = glm::cross(x - m_O, v); // ||v||sin(theta).T
+	// glm::vec3 angular_vector = glm::normalize(glm::cross(x - m_O, angular_momentum));
+	// v = glm::dot(v, angular_vector) * angular_vector;
 
 	return v;
 }
@@ -357,4 +409,23 @@ void Mesh::updatePositions() {
 
 glm::vec3 Mesh::computePosition(unsigned int nIt) {
 		return m_vertexPositions[nIt] + m_vertexVelocities[nIt] * m_h;
+}
+
+void Mesh::internalForces(){
+	std::fill(m_vertexStretch.begin(), m_vertexStretch.end(), glm::vec3(0));
+	for( unsigned int tIt = 0 ; tIt < m_triangleIndices.size() ; ++tIt ) {
+		glm::uvec3 t = m_triangleIndices[ tIt ];
+		const glm::vec3 x0 = m_vertexPositions[t[0]];
+		const glm::vec3 x1 = m_vertexPositions[t[1]];
+		const glm::vec3 x2 = m_vertexPositions[t[2]];
+		const float delta_x1 = glm::length(x1 - x0);
+		const float delta_x2 = glm::length(x2 - x0);
+		// const float delta_x1 = 0.f;
+		// const float delta_x2 = 0.f;}
+		float stretch = (delta_x1 + delta_x2)/(m_vertexRestLength[tIt]);
+
+		m_vertexStretch[t[0]] = ((x1 + x2) * 0.5f - x0) * (stretch - 1);
+		m_vertexStretch[t[1]] = ((x0 + x2) * 0.5f - x1) * (stretch - 1);
+		m_vertexStretch[t[2]] = ((x1 + x0) * 0.5f - x2) * (stretch - 1);
+	}
 }

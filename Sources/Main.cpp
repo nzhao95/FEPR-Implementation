@@ -43,7 +43,7 @@
 
 static const std::string SHADER_PATH ("Resources/Shaders/");
 // static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/sphere.off"); //use for subdivision
-static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/rhino.off");
+static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/bunny.off");
 
 // Window parameters
 static GLFWwindow * windowPtr = nullptr;
@@ -645,12 +645,15 @@ void update (float currentTime) {
         float dt = currentTime - app_timer_last_colckTime;
         app_timer_last_colckTime = currentTime;
         app_timer += dt;
-        // <---- Update here what needs to be animated over time ---->
-        if (app_timer < 0.2) {
-          scene.meshPtr->updateVelocity(app_timer);
-          scene.meshPtr->updatePositions();
-        }
-        else scene.meshPtr->FEPR(app_timer);
+
+
+        // <-- Comment either one  -->
+        //Without FEPR
+        // scene.meshPtr->updateVelocity(app_timer);
+        // scene.meshPtr->updatePositions();
+
+        //With FEPR
+        scene.meshPtr->FEPR(app_timer);
         Light & light0 = scene.scene_lights[ 0 ];
         light0.m_position = glm::vec3 (-2*cos(app_timer), 2*sin(app_timer), 3.5);
     }
