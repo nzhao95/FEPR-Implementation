@@ -44,8 +44,7 @@ public:
 				Eigen::VectorXf constraint ();
 				void FEPR (float t);
 				Eigen::VectorXf computeConstraint (Eigen::VectorXf q, Eigen::VectorXf qn_1);
-				glm::vec3 computePosition(unsigned int nIt) ;
-				glm::vec3 computeVelocity(unsigned int nIt, float t) ;
+				glm::vec3 computeVelocity(glm::vec3 x, glm::vec3 x0, glm::vec3 v, float t) ;
 				Eigen::MatrixXf jacobian_c (Eigen::VectorXf q, Eigen::VectorXf qn_1);
 				void updateJacobian (Eigen::MatrixXf &j, Eigen::VectorXf q);
 
@@ -67,7 +66,11 @@ private:
 	std::vector<float> m_vertexRestLength;
 	std::vector<glm::vec3> m_forceField;
 
-	glm::vec3 m_O = glm::vec3(0, -0.02, 0);
+	glm::vec3 barycenter0 = glm::vec3(0, 0, 0);
+	glm::vec3 barycenter = glm::vec3(0, 0, 0);
+	glm::vec3 barycenter_velocity = glm::vec3(0, 0, 0);
+	glm::vec3 dbv = glm::vec3(0, 0, 0);
+	glm::vec3 m_O = glm::vec3(0, 0, 0);
 
 	Eigen::DiagonalMatrix<float, Eigen::Dynamic> m_D;
 

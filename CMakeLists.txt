@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
-project(BaseGL)
+project(FEPR)
 
 add_subdirectory(External)
 
 add_executable (
-	BaseGL
+	FEPR
 	Sources/Main.cpp
 	Sources/Error.h
 	Sources/Error.cpp
@@ -22,14 +22,14 @@ add_executable (
 
 # Copy the shader files in the binary location.
 
-add_custom_command(TARGET BaseGL
+add_custom_command(TARGET FEPR
                    POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:BaseGL> ${CMAKE_CURRENT_SOURCE_DIR})
+                   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:FEPR> ${CMAKE_CURRENT_SOURCE_DIR})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(BaseGL LINK_PRIVATE glad)
+target_link_libraries(FEPR LINK_PRIVATE glad)
 
-target_link_libraries(BaseGL LINK_PRIVATE glfw)
+target_link_libraries(FEPR LINK_PRIVATE glfw)
 
-target_link_libraries(BaseGL LINK_PRIVATE glm)
+target_link_libraries(FEPR LINK_PRIVATE glm)

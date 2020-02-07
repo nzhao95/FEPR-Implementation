@@ -461,7 +461,7 @@ void initGLFW () {
     // Create the window
     window_width = 1024;
     window_height = 768;
-    windowPtr = glfwCreateWindow (window_width, window_height, "IGR202 - Practical Assignment", nullptr, nullptr);
+    windowPtr = glfwCreateWindow (window_width, window_height, "FEPR", nullptr, nullptr);
     if (!windowPtr) {
         std::cerr << "ERROR: Failed to open window" << std::endl;
         glfwTerminate ();
